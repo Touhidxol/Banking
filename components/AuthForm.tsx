@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { email, z } from "zod"
 import { authformSchema } from '@/lib/utils'
 import { Button } from "@/components/ui/button"
 import {
@@ -20,10 +20,15 @@ import {
 import { Input } from "@/components/ui/input"
 import CustomInput from './CustomInput'
 import { Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { signUp,signIn } from '@/lib/actions/user.actions'
 
 
 const AuthForm = ({ type }: { type: string }) => {
     const formSchema = authformSchema(type);
+    const [user, setuser] = useState(null)
+    const [Loading, setLoading] = useState(false)
+    const router =useRouter();
 
     // 1. Define your form.
     const form = useForm<z.infer<typeof formSchema>>({
@@ -31,30 +36,42 @@ const AuthForm = ({ type }: { type: string }) => {
         defaultValues: {
             password: "",
             email: "",
-            firstname: "",
-            lastname: "",
-            address1: "",
-            state: "",
-            postalCode: "",
-            dateOfBirth: "",
-            ssn: "",
+            firstname : "",
+            lastname : "",
+            address1 : "",
+            state : "",
+            postalCode : "",
+            district : "",
+            dateOfBirth : "",
+            ssn :"",
         },
     })
 
     // 2. Define a submit handler.
-    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
         setLoading(true);
+
         // Do something with the form values.
         try {
-            console.log(values);
+            if (type == "sign-up") {
+                const newUser = await signUp(data);
+                
+                setuser(newUser);
+            }
+            if (type == "sign-in") {
+                // const response =await signIn({
+                //     email : data.email,
+                //     password : data.password,
+                // })
+
+                // if (response) router.push("/");
+            }
         } catch (error) {
             console.log(error);
         } finally {
             setLoading(false);
         }
     }
-    const [user, setuser] = useState(null)
-    const [Loading, setLoading] = useState(false)
 
     return (
         <section className='!auth-form'>
@@ -119,6 +136,12 @@ const AuthForm = ({ type }: { type: string }) => {
                                             placeholder='ex: 7000001'
                                         />
                                     </div>
+                                    <CustomInput
+                                        control={form.control}
+                                        name='district'
+                                        label="District"
+                                        placeholder='Enter name of your District'
+                                    />
                                     <div className='flex gap-4'>
                                         <CustomInput
                                             control={form.control}
