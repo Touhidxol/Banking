@@ -15,6 +15,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { Section } from 'lucide-react'
 import Image from 'next/image'
+import Footer from './Footer'
 
 
 const MobileNav = ({ user }: MobileNavProps) => {
@@ -61,7 +62,7 @@ const MobileNav = ({ user }: MobileNavProps) => {
                             </nav>
                         </SheetClose>
                     </div>
-                    FOOTER
+                    <Footer user ={user} type="mobile" />
                 </SheetContent>
             </Sheet>
         </section>

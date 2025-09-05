@@ -5,45 +5,65 @@ import { createAdminClient, createSessionClient } from "../appwrite";
 import { ID } from "node-appwrite";
 import { cookies } from "next/headers";
 import { parseStringify } from "../utils";
+import { email } from "zod";
 
-export const signIn = async () => {
+export const signIn = async ({ email, password }: signInProps) => {
   try {
-    //Mutation/Database/Make fetch
+    const { account } = await createAdminClient();
+    const response = await account.createEmailPasswordSession(email, password);
+    (await cookies()).set("appwrite-session", response.secret, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+    });
+    return await parseStringify(response);
   } catch (error) {
     console.log(error);
   }
 };
 
 export const signUp = async (userData: SignUpParams) => {
-  const { email, password, firstName, lastName } = userData;
+  const { email, password, firstname, lastname } = userData;
   try {
     const { account } = await createAdminClient();
-
     const newUserAccount = await account.create(
       ID.unique(),
       email,
       password,
-      `${firstName} ${lastName}`
+      `${firstname} ${lastname}`
     );
     const session = await account.createEmailPasswordSession(email, password);
-
     (await cookies()).set("appwrite-session", session.secret, {
       path: "/",
       httpOnly: true,
       sameSite: "strict",
       secure: true,
     });
-    return parseStringify(newUserAccount);
-  } catch (error) {
+    return await parseStringify(newUserAccount);
+  } catch (error: any) {
     console.log(error);
+    // return { error: error?.message || "Sign up failed" };
   }
 };
 
 export async function getLoggedInUser() {
   try {
     const { account } = await createSessionClient();
-    return await account.get();
+    const user = await account.get();
+    return parseStringify(user);
   } catch (error) {
     return null;
   }
 }
+
+export const logoutAccount = async () => {
+  try {
+    const { account } = await createSessionClient();
+
+    (await cookies()).delete("appwrite-session");
+    await account.deleteSession("current");
+  } catch (error) {
+    return null;
+  }
+};

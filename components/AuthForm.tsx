@@ -21,14 +21,14 @@ import { Input } from "@/components/ui/input"
 import CustomInput from './CustomInput'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { signUp,signIn } from '@/lib/actions/user.actions'
+import { signUp, signIn } from '@/lib/actions/user.actions'
 
 
 const AuthForm = ({ type }: { type: string }) => {
     const formSchema = authformSchema(type);
     const [user, setuser] = useState(null)
     const [Loading, setLoading] = useState(false)
-    const router =useRouter();
+    const router = useRouter();
 
     // 1. Define your form.
     const form = useForm<z.infer<typeof formSchema>>({
@@ -36,14 +36,14 @@ const AuthForm = ({ type }: { type: string }) => {
         defaultValues: {
             password: "",
             email: "",
-            firstname : "",
-            lastname : "",
-            address1 : "",
-            state : "",
-            postalCode : "",
-            district : "",
-            dateOfBirth : "",
-            ssn :"",
+            firstname: "",
+            lastname: "",
+            address1: "",
+            state: "",
+            postalCode: "",
+            district: "",
+            dateOfBirth: "",
+            ssn: "",
         },
     })
 
@@ -55,16 +55,16 @@ const AuthForm = ({ type }: { type: string }) => {
         try {
             if (type == "sign-up") {
                 const newUser = await signUp(data);
-                
+                console.log(newUser);
                 setuser(newUser);
             }
             if (type == "sign-in") {
-                // const response =await signIn({
-                //     email : data.email,
-                //     password : data.password,
-                // })
-
-                // if (response) router.push("/");
+                const response =await signIn({
+                    email : data.email,
+                    password : data.password,
+                })
+                
+                if (response) router.push("/");
             }
         } catch (error) {
             console.log(error);
