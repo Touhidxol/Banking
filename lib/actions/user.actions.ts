@@ -2,7 +2,7 @@
 
 import { error } from "console";
 import { createAdminClient, createSessionClient } from "../appwrite";
-import { ID } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { cookies } from "next/headers";
 import { encryptId, extractCustomerIdFromUrl, parseStringify } from "../utils";
 import { email } from "zod";
@@ -101,6 +101,27 @@ export async function getLoggedInUser() {
   }
 }
 
+export async function getFullUserInfo() {
+  try {
+    const { account } = await createSessionClient();
+    const appwriteUser = await account.get();
+    // Query your database for the user document
+    // You need to use an admin client to access the database
+    const { database } = await createAdminClient();
+    const userDocs = await database.listDocuments(
+      DATABASE_ID!,
+      USER_COLLECTION_ID!,
+      [Query.equal("userId", appwriteUser.$id)]
+    );
+    const dbUser = userDocs.documents[0];
+    // Merge and return
+    return parseStringify(dbUser);
+  } catch (error) {
+    return null;
+  }
+}
+
+
 export const logoutAccount = async () => {
   try {
     const { account } = await createSessionClient();
@@ -118,11 +139,12 @@ export const createLinkToken = async (user: User) => {
       user: {
         client_user_id: user.$id,
       },
-      client_name: `${user.firstName} ${user.lastName}`,
+      client_name: `${user.firstName} ${user.lastName}` || "Umini",
       products: ["auth"] as Products[],
       language: "en",
       country_codes: ["US"] as CountryCode[],
     };
+    // console.log("Plaid tokenParams:", tokenParams);
     const response = await plaidClient.linkTokenCreate(tokenParams);
 
     return parseStringify({ linkToken: response.data.link_token });
@@ -156,7 +178,9 @@ export const createBankAccount = async ({
     );
 
     return parseStringify(bankAccount);
-  } catch (error) {}
+  } catch (error) {
+    console.log("database bank error" + error)
+  }
 };
 
 export const exchangePublicToken = async ({

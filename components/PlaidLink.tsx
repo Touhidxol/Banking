@@ -12,13 +12,14 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
   useEffect(() => {
     const getLinkToken = async () => {
       const data = await createLinkToken(user);
-      settoken(data?.LinkToken);
+      settoken(data?.linkToken);
     }
     // console.log(user)
     getLinkToken();
   }, [user]);
 
   const onSuccess = useCallback<PlaidLinkOnSuccess>(async (public_token: string) => {
+    // console.log(user);
     await exchangePublicToken({
       publicToken: public_token,
       user,

@@ -21,20 +21,23 @@ import { Input } from "@/components/ui/input"
 import CustomInput from './CustomInput'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { signUp, signIn, getLoggedInUser } from '@/lib/actions/user.actions'
+import { signUp, signIn, getLoggedInUser, getFullUserInfo } from '@/lib/actions/user.actions'
 import PlaidLink from './PlaidLink'
 
 
 const AuthForm = ({ type }: { type: string }) => {
     const formSchema = authformSchema(type);
-    const [user, setuser] = useState(null)
-    const [Loading, setLoading] = useState(false)
+    const [user, setuser] = useState(null);
+    const [Loading, setLoading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
         const fetchUser = async () => {
+            const loggedUserdb = await getFullUserInfo();
             const loggedUser = await getLoggedInUser();
-            if (loggedUser) setuser(loggedUser);
+            if (loggedUserdb) {
+                setuser(loggedUserdb);
+            };
         };
         fetchUser();
     }, []);
@@ -115,7 +118,7 @@ const AuthForm = ({ type }: { type: string }) => {
                 </div>
             </header>
             {user ? (
-                <div className='flex flex-col gap-4'>
+                <div className='flex flex-col gap-4 cursor-pointer'>
                     <PlaidLink user={user} variant='primary' />
                 </div>
             ) : (
@@ -207,7 +210,7 @@ const AuthForm = ({ type }: { type: string }) => {
                     <footer className='flex justify-center gap-1'>
                         <p className='text-14 font-normal text-gray-600'>{type == "sign-in" ? "Don't have account ? " : "Already have an account ? "}</p>
                         <Link href={type === "sign-in" ? '/sign-up' : 'sign-in'} className='!form-link'>
-                            {type === "sign-in" ? '/Sign Up' : 'Sign In'}
+                            {type === "sign-in" ? 'Sign Up' : 'Sign In'}
                         </Link>
                     </footer>
                 </>

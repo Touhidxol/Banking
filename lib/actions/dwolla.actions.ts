@@ -28,6 +28,7 @@ export const createFundingSource = async (
   options: CreateFundingSourceOptions
 ) => {
   try {
+    console.log("Creating Funding Source for customerId:", options.customerId);
     return await dwollaClient
       .post(`customers/${options.customerId}/funding-sources`, {
         name: options.fundingSourceName,
@@ -55,9 +56,11 @@ export const createDwollaCustomer = async (
   newCustomer: NewDwollaCustomerParams
 ) => {
   try {
-    return await dwollaClient
+    const result = await dwollaClient
       .post("customers", newCustomer)
       .then((res) => res.headers.get("location"));
+    console.log("Dwolla Customer URL:", result);
+    return result;
   } catch (err) {
     console.error("Creating a Dwolla Customer Failed: ", err);
   }
