@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -21,7 +21,8 @@ import { Input } from "@/components/ui/input"
 import CustomInput from './CustomInput'
 import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { signUp, signIn } from '@/lib/actions/user.actions'
+import { signUp, signIn, getLoggedInUser } from '@/lib/actions/user.actions'
+import PlaidLink from './PlaidLink'
 
 
 const AuthForm = ({ type }: { type: string }) => {
@@ -29,6 +30,14 @@ const AuthForm = ({ type }: { type: string }) => {
     const [user, setuser] = useState(null)
     const [Loading, setLoading] = useState(false)
     const router = useRouter();
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const loggedUser = await getLoggedInUser();
+            if (loggedUser) setuser(loggedUser);
+        };
+        fetchUser();
+    }, []);
 
     // 1. Define your form.
     const form = useForm<z.infer<typeof formSchema>>({
@@ -41,7 +50,7 @@ const AuthForm = ({ type }: { type: string }) => {
             address1: "",
             state: "",
             postalCode: "",
-            district: "",
+            city: "",
             dateOfBirth: "",
             ssn: "",
         },
@@ -53,17 +62,30 @@ const AuthForm = ({ type }: { type: string }) => {
 
         // Do something with the form values.
         try {
+            //Sign up with Appwrite & create plaid token
             if (type == "sign-up") {
-                const newUser = await signUp(data);
-                console.log(newUser);
+                const userData = {
+                    firstName: data.firstname!,
+                    lastName: data.lastname!,
+                    address1: data.address1!,
+                    state: data.state!,
+                    postalCode: data.postalCode!,
+                    city: data.city!,
+                    dateOfBirth: data.dateOfBirth!,
+                    ssn: data.ssn!,
+                    email: data.email,
+                    password: data.password,
+                }
+
+                const newUser = await signUp(userData);
                 setuser(newUser);
             }
             if (type == "sign-in") {
-                const response =await signIn({
-                    email : data.email,
-                    password : data.password,
+                const response = await signIn({
+                    email: data.email,
+                    password: data.password,
                 })
-                
+
                 if (response) router.push("/");
             }
         } catch (error) {
@@ -94,7 +116,7 @@ const AuthForm = ({ type }: { type: string }) => {
             </header>
             {user ? (
                 <div className='flex flex-col gap-4'>
-                    {/* {Link account} */}
+                    <PlaidLink user={user} variant='primary' />
                 </div>
             ) : (
                 <>
@@ -138,9 +160,9 @@ const AuthForm = ({ type }: { type: string }) => {
                                     </div>
                                     <CustomInput
                                         control={form.control}
-                                        name='district'
-                                        label="District"
-                                        placeholder='Enter name of your District'
+                                        name='city'
+                                        label="City"
+                                        placeholder='Enter name of your City'
                                     />
                                     <div className='flex gap-4'>
                                         <CustomInput
@@ -156,7 +178,6 @@ const AuthForm = ({ type }: { type: string }) => {
                                             placeholder='ex: 1234'
                                         />
                                     </div>
-
                                 </>
                             }
                             <CustomInput
