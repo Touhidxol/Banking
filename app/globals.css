@@ -307,7 +307,7 @@
   @apply flex-center truncate w-fit gap-1 rounded-2xl border-[1.5px] py-[2px] pl-1.5 pr-2;
 }
 @utility banktab-item {
-  @apply gap-[18px] border-b-2 flex px-2 sm:px-4 py-2 transition-all;
+  @apply gap-[18px] flex px-2 sm:px-4 py-2 transition-all;
 }
 
 /* Mobile Navigation */
@@ -371,7 +371,8 @@
   @apply mt-5 flex w-full max-w-[850px] gap-3 border-gray-200 py-5;
 }
 @utility payment-transfer-btn {
-  @apply text-14 w-full bg-[--bg-bank-gradient] font-semibold text-white shadow-form;
+  @apply text-14 w-full font-semibold rounded-sm text-white shadow-form cursor-pointer;
+    background-image: var(--bg-bank-gradient);
 }
 
 /* Layouts & Footers */

@@ -25,6 +25,7 @@ const {
 export const signIn = async ({ email, password }: signInProps) => {
   try {
     const { account } = await createAdminClient();
+
     const response = await account.createEmailPasswordSession(email, password);
     (await cookies()).set("appwrite-session", response.secret, {
       path: "/",
@@ -32,7 +33,10 @@ export const signIn = async ({ email, password }: signInProps) => {
       sameSite: "strict",
       secure: true,
     });
-    return await parseStringify(response);
+
+    const user = await getFullUserInfo();
+
+    return await parseStringify(user);
   } catch (error) {
     console.log(error);
   }
@@ -117,10 +121,10 @@ export async function getFullUserInfo() {
     // Merge and return
     return parseStringify(dbUser);
   } catch (error) {
+    console.log(error);
     return null;
   }
 }
-
 
 export const logoutAccount = async () => {
   try {
@@ -140,7 +144,7 @@ export const createLinkToken = async (user: User) => {
         client_user_id: user.$id,
       },
       client_name: `${user.firstName} ${user.lastName}` || "Umini",
-      products: ["auth"] as Products[],
+      products: ["auth", "transactions"] as Products[],
       language: "en",
       country_codes: ["US"] as CountryCode[],
     };
@@ -174,12 +178,13 @@ export const createBankAccount = async ({
         accessToken,
         fundingSourceUrl,
         shareableId,
+        userIdString: userId,
       }
     );
 
     return parseStringify(bankAccount);
   } catch (error) {
-    console.log("database bank error" + error)
+    console.log("database bank error" + error);
   }
 };
 
@@ -238,6 +243,68 @@ export const exchangePublicToken = async ({
 
     //Return a success message
     return parseStringify({ publicTokenExchange: "complete" });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getBanks = async ({ userId }: getBanksProps) => {
+  try {
+    const { database } = await createAdminClient();
+    // console.log("User ID : " + userId);
+    const user = await database.listDocuments(
+      DATABASE_ID!,
+      USER_COLLECTION_ID!,
+      [Query.equal("userId", [userId])]
+    );
+
+    const userIdString = user.documents[0].$id;
+
+    const banks = await database.listDocuments(
+      DATABASE_ID!,
+      BANK_COLLECTION_ID!,
+      [Query.equal("userIdString", [userIdString])]
+    );
+    // console.log("BANK DETAILS ARE : ");
+    // console.log(banks);
+
+    return parseStringify(banks.documents);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getBank = async ({ documentId }: getBankProps) => {
+  try {
+    const { database } = await createAdminClient();
+
+    const bank = await database.listDocuments(
+      DATABASE_ID!,
+      BANK_COLLECTION_ID!,
+      [Query.equal("$id", [documentId])]
+    );
+
+    return parseStringify(bank.documents[0]);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getBankByAccountId = async ({
+  accountId,
+}: getBankByAccountIdProps) => {
+  try {
+    const { database } = await createAdminClient();
+
+    const bank = await database.listDocuments(
+      DATABASE_ID!,
+      BANK_COLLECTION_ID!,
+      [Query.equal("accountId", [accountId])]
+    );
+
+    if (bank.total !== 1) return null;
+
+    return parseStringify(bank.documents[0]);
   } catch (error) {
     console.log(error);
   }
